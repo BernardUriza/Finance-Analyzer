@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador Financiero</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --positive: #198754;
+            --negative: #dc3545;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #1a1a2e;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.15s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .summary-card .card-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.75;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-card .card-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .summary-card .card-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .text-positive {
+            color: var(--positive) !important;
+        }
+
+        .text-negative {
+            color: var(--negative) !important;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .form-section h5 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .dynamic-row {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-remove-row {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .input-group-text {
+            min-width: 45px;
+            justify-content: center;
+        }
+
+        .priority-icon {
+            font-size: 1.1rem;
+            margin-right: 0.5rem;
+        }
+
+        .priority-complete .priority-icon {
+            color: var(--positive);
+        }
+
+        .priority-in-progress .priority-icon {
+            color: #ffc107;
+        }
+
+        .priority-action-needed .priority-icon {
+            color: var(--negative);
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .table {
+            font-size: 0.9rem;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(13, 110, 253, 0.15);
+        }
+
+        .back-link {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 767.98px) {
+            .summary-card .card-value {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
+    <div class="container">
+        <a class="navbar-brand" href="#">&#128176; Analizador Financiero</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="nav-dashboard" onclick="showView('dashboard')">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="nav-edit" onclick="showView('edit')">Editar Perfil</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4">
+    <a href="../" class="back-link d-inline-block mb-3">&larr; Volver al inicio</a>
+
+    <!-- ============================================================ -->
+    <!-- DASHBOARD VIEW -->
+    <!-- ============================================================ -->
+    <div id="view-dashboard" style="display:none;">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="dash-header" class="mb-0"></h2>
+            <button class="btn btn-outline-primary" onclick="showView('edit')">Editar Perfil</button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4" id="summary-cards"></div>
+
+        <!-- Ratio Cards -->
+        <div class="row g-3 mb-4" id="ratio-cards"></div>
+
+        <!-- Insights -->
+        <div class="mb-4">
+            <h4 class="section-title">Analisis</h4>
+            <div id="insights-container"></div>
+        </div>
+
+        <!-- Priorities -->
+        <div class="mb-4">
+            <h4 class="section-title">Prioridades Financieras</h4>
+            <div class="accordion" id="priorities-accordion"></div>
+        </div>
+
+        <!-- Asset Breakdown -->
+        <div class="mb-4">
+            <h4 class="section-title">Desglose de Activos y Deudas</h4>
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header"><strong>Activos Financieros</strong></div>
+                        <div class="card-body p-0" id="table-financial-assets"></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header"><strong>Activos Fisicos</strong></div>
+                        <div class="card-body p-0" id="table-physical-assets"></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header"><strong>Deudas</strong></div>
+                        <div class="card-body p-0" id="table-liabilities"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- EDIT PROFILE VIEW -->
+    <!-- ============================================================ -->
+    <div id="view-edit" style="display:none;">
+        <h2 class="mb-4">Editar Perfil Financiero</h2>
+        <form id="profile-form" onsubmit="return saveProfile()">
+
+            <!-- Datos basicos -->
+            <div class="form-section">
+                <h5>Datos Basicos</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre del perfil</label>
+                        <input type="text" class="form-control" id="f-name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Edad</label>
+                        <input type="number" class="form-control" id="f-age" min="0" max="120" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ingresos mensuales -->
+            <div class="form-section">
+                <h5>Ingresos Mensuales</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Empleo</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-income-employment" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Inversiones</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-income-investments" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Otros</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-income-other" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gastos mensuales -->
+            <div class="form-section">
+                <h5>Gastos Mensuales</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Vivienda (renta/hipoteca)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-housing" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Transporte</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-transportation" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Comida y despensa</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-food" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Servicios (luz/agua/gas)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-utilities" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Seguros</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-insurance" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Salud</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-healthcare" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Entretenimiento</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-entertainment" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Gastos personales</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-personal" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Otros</label>
+                        <div class="input-group">
+                            <span class="input-group-text">MX$</span>
+                            <input type="number" class="form-control" id="f-exp-other" min="0" step="0.01" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activos financieros -->
+            <div class="form-section">
+                <h5>Activos Financieros</h5>
+                <div id="financial-assets-rows"></div>
+                <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="addFinancialAssetRow()">+ Agregar activo financiero</button>
+            </div>
+
+            <!-- Activos fisicos -->
+            <div class="form-section">
+                <h5>Activos Fisicos</h5>
+                <div id="physical-assets-rows"></div>
+                <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="addPhysicalAssetRow()">+ Agregar activo fisico</button>
+            </div>
+
+            <!-- Deudas -->
+            <div class="form-section">
+                <h5>Deudas</h5>
+                <div id="liabilities-rows"></div>
+                <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="addLiabilityRow()">+ Agregar deuda</button>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2 flex-wrap mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">Guardar Perfil</button>
+                <button type="button" class="btn btn-outline-danger" onclick="resetProfile()">Resetear</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="showView('dashboard')">Volver al Dashboard</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="py-3 mt-auto">
+    <div class="container text-center text-muted">
+        Analizador Financiero &mdash; Hecho con &#10084;&#65039;
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// =====================================================================
+// CONSTANTS & LABEL MAPS
+// =====================================================================
+const STORAGE_KEY = 'financialProfile';
+
+const FINANCIAL_TYPE_LABELS = {
+    savings: 'Ahorro / CETES',
+    retirement: 'Afore',
+    mutual_fund: 'Fondo de inversion',
+    stocks: 'Acciones / ETF',
+    index_fund: 'Fondo indexado',
+    bonds: 'Bonos',
+    crypto: 'Crypto',
+    cash: 'Efectivo',
+    other: 'Otro'
+};
+
+const PHYSICAL_TYPE_LABELS = {
+    vehicle: 'Vehiculo',
+    real_estate: 'Inmueble',
+    electronics: 'Electronicos',
+    furniture: 'Muebles',
+    other: 'Otro'
+};
+
+const LIABILITY_TYPE_LABELS = {
+    mortgage: 'Hipoteca',
+    car_loan: 'Credito automotriz',
+    student_loan: 'Credito educativo',
+    credit_card: 'Tarjeta de credito',
+    line_of_credit: 'Linea de credito',
+    personal_loan: 'Prestamo personal',
+    other: 'Otro'
+};
+
+const FINANCIAL_TYPE_OPTIONS = [
+    { value: 'savings', label: 'Ahorro / CETES' },
+    { value: 'retirement', label: 'Afore' },
+    { value: 'mutual_fund', label: 'Fondo de inversion' },
+    { value: 'stocks', label: 'Acciones / ETF' },
+    { value: 'index_fund', label: 'Fondo indexado' },
+    { value: 'bonds', label: 'Bonos' },
+    { value: 'crypto', label: 'Crypto' },
+    { value: 'cash', label: 'Efectivo' },
+    { value: 'other', label: 'Otro' }
+];
+
+const PHYSICAL_TYPE_OPTIONS = [
+    { value: 'vehicle', label: 'Vehiculo' },
+    { value: 'real_estate', label: 'Inmueble' },
+    { value: 'electronics', label: 'Electronicos' },
+    { value: 'furniture', label: 'Muebles' },
+    { value: 'other', label: 'Otro' }
+];
+
+const LIABILITY_TYPE_OPTIONS = [
+    { value: 'mortgage', label: 'Hipoteca' },
+    { value: 'car_loan', label: 'Credito automotriz' },
+    { value: 'student_loan', label: 'Credito educativo' },
+    { value: 'credit_card', label: 'Tarjeta de credito' },
+    { value: 'line_of_credit', label: 'Linea de credito' },
+    { value: 'personal_loan', label: 'Prestamo personal' },
+    { value: 'other', label: 'Otro' }
+];
+
+// =====================================================================
+// DEFAULT DATA
+// =====================================================================
+function getDefaultProfile() {
+    return {
+        name: 'Mi Perfil',
+        age: 30,
+        income: { employment: 0, investments: 0, other: 0 },
+        expenses: {
+            housing: 0, transportation: 0, food: 0, utilities: 0,
+            insurance: 0, healthcare: 0, entertainment: 0, personal: 0, other: 0
+        },
+        financialAssets: [],
+        physicalAssets: [],
+        liabilities: []
+    };
+}
+
+// =====================================================================
+// UTILITY FUNCTIONS
+// =====================================================================
+function num(val) {
+    const n = parseFloat(val);
+    return isNaN(n) ? 0 : n;
+}
+
+function formatMoney(amount) {
+    const abs = Math.abs(amount);
+    const formatted = abs.toLocaleString('es-MX', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    const prefix = amount < 0 ? '-$' : '$';
+    return prefix + formatted;
+}
+
+function formatPercent(value) {
+    return value.toFixed(2) + '%';
+}
+
+function valueColorClass(value) {
+    if (value > 0) return 'text-positive';
+    if (value < 0) return 'text-negative';
+    return '';
+}
+
+// =====================================================================
+// DATA PERSISTENCE
+// =====================================================================
+function loadProfile() {
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+            const parsed = JSON.parse(data);
+            // Merge with defaults to handle missing fields
+            const defaults = getDefaultProfile();
+            return {
+                name: parsed.name || defaults.name,
+                age: num(parsed.age) || defaults.age,
+                income: { ...defaults.income, ...(parsed.income || {}) },
+                expenses: { ...defaults.expenses, ...(parsed.expenses || {}) },
+                financialAssets: Array.isArray(parsed.financialAssets) ? parsed.financialAssets : [],
+                physicalAssets: Array.isArray(parsed.physicalAssets) ? parsed.physicalAssets : [],
+                liabilities: Array.isArray(parsed.liabilities) ? parsed.liabilities : []
+            };
+        }
+    } catch (e) {
+        console.error('Error cargando perfil:', e);
+    }
+    return null;
+}
+
+function saveToStorage(profile) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+}
+
+function hasProfile() {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+}
+
+// =====================================================================
+// VIEW MANAGEMENT
+// =====================================================================
+function showView(view) {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-edit').style.display = 'none';
+    document.getElementById('nav-dashboard').classList.remove('active');
+    document.getElementById('nav-edit').classList.remove('active');
+
+    if (view === 'dashboard' && hasProfile()) {
+        document.getElementById('view-dashboard').style.display = 'block';
+        document.getElementById('nav-dashboard').classList.add('active');
+        renderDashboard();
+    } else {
+        document.getElementById('view-edit').style.display = 'block';
+        document.getElementById('nav-edit').classList.add('active');
+        populateForm();
+    }
+}
+
+// =====================================================================
+// CALCULATIONS
+// =====================================================================
+function calculate(profile) {
+    const p = profile;
+    const totalIncome = num(p.income.employment) + num(p.income.investments) + num(p.income.other);
+    const totalExpenses = num(p.expenses.housing) + num(p.expenses.transportation) + num(p.expenses.food) +
+        num(p.expenses.utilities) + num(p.expenses.insurance) + num(p.expenses.healthcare) +
+        num(p.expenses.entertainment) + num(p.expenses.personal) + num(p.expenses.other);
+    const netIncome = totalIncome - totalExpenses;
+    const savingsRate = totalIncome > 0 ? (netIncome / totalIncome) * 100 : 0;
+
+    let totalFinancialAssets = 0;
+    let expectedAnnualGain = 0;
+    for (const a of p.financialAssets) {
+        const amt = num(a.amount);
+        totalFinancialAssets += amt;
+        expectedAnnualGain += amt * num(a.rate_of_return) / 100;
+    }
+
+    let totalPhysicalAssets = 0;
+    let annualDepreciation = 0;
+    for (const a of p.physicalAssets) {
+        const val = num(a.current_value);
+        totalPhysicalAssets += val;
+        annualDepreciation += val * num(a.annual_depreciation_rate) / 100;
+    }
+
+    let totalLiabilities = 0;
+    let annualInterestCost = 0;
+    let totalMonthlyDebtPayments = 0;
+    for (const l of p.liabilities) {
+        const bal = num(l.balance);
+        totalLiabilities += bal;
+        annualInterestCost += bal * num(l.interest_rate) / 100;
+        totalMonthlyDebtPayments += num(l.monthly_payment);
+    }
+
+    const netFinancialAssets = totalFinancialAssets - totalLiabilities;
+    const netTotalAssets = totalFinancialAssets + totalPhysicalAssets - totalLiabilities;
+    const netChangeInNetWorth = (netIncome * 12) + expectedAnnualGain - annualDepreciation - annualInterestCost;
+    const debtServiceRatio = totalIncome > 0 ? (totalMonthlyDebtPayments / totalIncome) * 100 : 0;
+    const housingCostRatio = totalIncome > 0 ? (num(p.expenses.housing) / totalIncome) * 100 : 0;
+
+    return {
+        totalIncome, totalExpenses, netIncome, savingsRate,
+        totalFinancialAssets, expectedAnnualGain,
+        totalPhysicalAssets, annualDepreciation,
+        totalLiabilities, annualInterestCost, totalMonthlyDebtPayments,
+        netFinancialAssets, netTotalAssets, netChangeInNetWorth,
+        debtServiceRatio, housingCostRatio
+    };
+}
+
+// =====================================================================
+// INSIGHTS LOGIC
+// =====================================================================
+function generateInsights(profile, calc) {
+    const insights = [];
+
+    // Housing ratio
+    if (calc.housingCostRatio > 30) {
+        insights.push({
+            type: 'warning',
+            text: 'Tu gasto en vivienda representa el ' + formatPercent(calc.housingCostRatio) + ' de tus ingresos. Se recomienda que no supere el 30%.'
+        });
+    } else if (calc.housingCostRatio > 0) {
+        insights.push({
+            type: 'success',
+            text: 'Tu gasto en vivienda (' + formatPercent(calc.housingCostRatio) + ') esta dentro del rango recomendado (<=30%).'
+        });
+    }
+
+    // Debt service ratio
+    if (calc.debtServiceRatio > 40) {
+        insights.push({
+            type: 'danger',
+            text: 'Tu ratio de servicio de deuda es ' + formatPercent(calc.debtServiceRatio) + '. Esto es muy alto y puede poner en riesgo tu estabilidad financiera.'
+        });
+    } else if (calc.debtServiceRatio > 20) {
+        insights.push({
+            type: 'warning',
+            text: 'Tu ratio de servicio de deuda es ' + formatPercent(calc.debtServiceRatio) + '. Intenta reducirlo por debajo del 20%.'
+        });
+    } else if (calc.debtServiceRatio > 0) {
+        insights.push({
+            type: 'success',
+            text: 'Tu ratio de servicio de deuda (' + formatPercent(calc.debtServiceRatio) + ') esta en un nivel saludable.'
+        });
+    }
+
+    // Savings rate
+    if (calc.savingsRate < 0) {
+        insights.push({
+            type: 'danger',
+            text: 'Estas gastando mas de lo que ganas. Tu tasa de ahorro es ' + formatPercent(calc.savingsRate) + '. Necesitas reducir gastos o aumentar ingresos urgentemente.'
+        });
+    } else if (calc.savingsRate < 10) {
+        insights.push({
+            type: 'warning',
+            text: 'Tu tasa de ahorro es solo ' + formatPercent(calc.savingsRate) + '. Se recomienda ahorrar al menos el 20% de tus ingresos.'
+        });
+    } else if (calc.savingsRate >= 20) {
+        insights.push({
+            type: 'success',
+            text: 'Excelente tasa de ahorro de ' + formatPercent(calc.savingsRate) + '. Estas por encima de la meta del 20%.'
+        });
+    } else {
+        insights.push({
+            type: 'info',
+            text: 'Tu tasa de ahorro es ' + formatPercent(calc.savingsRate) + '. Buen progreso, la meta es llegar al 20%.'
+        });
+    }
+
+    // Stocks without safety net
+    const stocksAmount = profile.financialAssets
+        .filter(a => a.type === 'stocks' || a.type === 'index_fund')
+        .reduce((s, a) => s + num(a.amount), 0);
+    const cashSavingsAmount = profile.financialAssets
+        .filter(a => a.type === 'savings' || a.type === 'cash')
+        .reduce((s, a) => s + num(a.amount), 0);
+    const threeMonthsExpenses = calc.totalExpenses * 3;
+
+    if (stocksAmount > 0 && cashSavingsAmount < threeMonthsExpenses) {
+        insights.push({
+            type: 'warning',
+            text: 'Tienes inversiones en acciones/fondos pero tu fondo de emergencia (efectivo + ahorro: ' + formatMoney(cashSavingsAmount) + ') es menor a 3 meses de gastos (' + formatMoney(threeMonthsExpenses) + '). Considera fortalecer tu red de seguridad primero.'
+        });
+    }
+
+    // Age-based insights
+    const age = num(profile.age);
+    const investmentAmount = profile.financialAssets
+        .filter(a => ['stocks', 'index_fund', 'bonds', 'mutual_fund', 'retirement', 'crypto'].includes(a.type))
+        .reduce((s, a) => s + num(a.amount), 0);
+    const annualSalary = calc.totalIncome * 12;
+
+    if (age < 30 && investmentAmount > 0) {
+        insights.push({
+            type: 'info',
+            text: 'A tus ' + age + ' anos, el interes compuesto es tu mejor aliado. Cada peso invertido ahora puede multiplicarse significativamente para tu retiro.'
+        });
+    }
+
+    if (age >= 30 && age < 40) {
+        const target = annualSalary * 1;
+        if (calc.netTotalAssets < target && annualSalary > 0) {
+            insights.push({
+                type: 'warning',
+                text: 'A tus ' + age + ' anos, se recomienda tener un patrimonio neto de al menos 1x tu salario anual (' + formatMoney(target) + '). Actualmente tienes ' + formatMoney(calc.netTotalAssets) + '.'
+            });
+        }
+    }
+
+    if (age >= 40 && age < 50) {
+        const target = annualSalary * 3;
+        if (calc.netTotalAssets < target && annualSalary > 0) {
+            insights.push({
+                type: 'warning',
+                text: 'A tus ' + age + ' anos, se recomienda tener un patrimonio neto de al menos 3x tu salario anual (' + formatMoney(target) + '). Actualmente tienes ' + formatMoney(calc.netTotalAssets) + '.'
+            });
+        }
+    }
+
+    if (age >= 50) {
+        insights.push({
+            type: 'info',
+            text: 'A tus ' + age + ' anos, es importante enfocarse en la planeacion del retiro. Asegurate de tener suficientes activos para mantener tu estilo de vida.'
+        });
+    }
+
+    // Crypto warning
+    if (calc.totalFinancialAssets > 0) {
+        const cryptoAmount = profile.financialAssets
+            .filter(a => a.type === 'crypto')
+            .reduce((s, a) => s + num(a.amount), 0);
+        const cryptoPercent = (cryptoAmount / calc.totalFinancialAssets) * 100;
+        if (cryptoPercent > 10) {
+            insights.push({
+                type: 'warning',
+                text: 'Crypto representa el ' + formatPercent(cryptoPercent) + ' de tus activos financieros. Se recomienda no superar el 10% debido a su alta volatilidad.'
+            });
+        }
+    }
+
+    // High interest debt vs stock returns
+    const highInterestDebts = profile.liabilities.filter(l => num(l.interest_rate) > 7);
+    if (highInterestDebts.length > 0) {
+        const maxRate = Math.max(...highInterestDebts.map(l => num(l.interest_rate)));
+        const avgStockReturn = 10; // approximate average stock market return
+        if (maxRate > avgStockReturn) {
+            insights.push({
+                type: 'warning',
+                text: 'Tienes deuda con tasa de interes del ' + formatPercent(maxRate) + ', mayor que el rendimiento promedio del mercado (~10%). Prioriza pagar esta deuda antes de invertir.'
+            });
+        }
+    }
+
+    // Net worth change
+    if (calc.netChangeInNetWorth > 0) {
+        insights.push({
+            type: 'success',
+            text: 'Tu patrimonio neto esta proyectado a crecer ' + formatMoney(calc.netChangeInNetWorth) + ' este ano. Sigue asi.'
+        });
+    } else if (calc.netChangeInNetWorth < 0) {
+        insights.push({
+            type: 'danger',
+            text: 'Tu patrimonio neto esta proyectado a disminuir ' + formatMoney(Math.abs(calc.netChangeInNetWorth)) + ' este ano. Revisa tus gastos y deudas.'
+        });
+    }
+
+    return insights;
+}
+
+// =====================================================================
+// PRIORITIES LOGIC
+// =====================================================================
+function calculatePriorities(profile, calc) {
+    const priorities = [];
+
+    // 1. Flujo de efectivo positivo
+    priorities.push({
+        title: 'Flujo de efectivo positivo',
+        status: calc.netIncome > 0 ? 'complete' : 'action_needed',
+        description: calc.netIncome > 0
+            ? 'Tu ingreso neto mensual es ' + formatMoney(calc.netIncome) + '. Tienes un flujo de efectivo positivo.'
+            : 'Tu ingreso neto mensual es ' + formatMoney(calc.netIncome) + '. Necesitas reducir gastos o aumentar ingresos para lograr un flujo positivo.'
+    });
+
+    // 2. Eliminar deuda cara (>7%)
+    const expensiveDebts = profile.liabilities.filter(l => num(l.interest_rate) > 7);
+    priorities.push({
+        title: 'Eliminar deuda cara (>7% interes)',
+        status: expensiveDebts.length === 0 ? 'complete' : 'action_needed',
+        description: expensiveDebts.length === 0
+            ? 'No tienes deudas con tasas de interes superiores al 7%.'
+            : 'Tienes ' + expensiveDebts.length + ' deuda(s) con tasas superiores al 7%. Balance total: ' + formatMoney(expensiveDebts.reduce((s, l) => s + num(l.balance), 0)) + '.'
+    });
+
+    // 3. Fondo de emergencia
+    const emergencyFund = profile.financialAssets
+        .filter(a => a.type === 'savings' || a.type === 'cash')
+        .reduce((s, a) => s + num(a.amount), 0);
+    const sixMonths = calc.totalExpenses * 6;
+    const threeMonths = calc.totalExpenses * 3;
+    let emergencyStatus = 'action_needed';
+    let emergencyDesc = '';
+    if (emergencyFund >= sixMonths && sixMonths > 0) {
+        emergencyStatus = 'complete';
+        emergencyDesc = 'Tu fondo de emergencia (' + formatMoney(emergencyFund) + ') cubre al menos 6 meses de gastos (' + formatMoney(sixMonths) + ').';
+    } else if (emergencyFund >= threeMonths && threeMonths > 0) {
+        emergencyStatus = 'in_progress';
+        emergencyDesc = 'Tu fondo de emergencia (' + formatMoney(emergencyFund) + ') cubre 3-6 meses de gastos. Meta: ' + formatMoney(sixMonths) + '.';
+    } else if (calc.totalExpenses === 0) {
+        emergencyStatus = 'action_needed';
+        emergencyDesc = 'No hay datos de gastos para calcular el fondo de emergencia necesario. Registra tus gastos primero.';
+    } else {
+        emergencyDesc = 'Tu fondo de emergencia (' + formatMoney(emergencyFund) + ') es menor a 3 meses de gastos (' + formatMoney(threeMonths) + '). Meta: ' + formatMoney(sixMonths) + '.';
+    }
+    priorities.push({
+        title: 'Fondo de emergencia (6 meses de gastos)',
+        status: emergencyStatus,
+        description: emergencyDesc
+    });
+
+    // 4. Invertir para crecer
+    const investmentAssets = profile.financialAssets
+        .filter(a => ['stocks', 'index_fund', 'bonds', 'mutual_fund', 'retirement', 'crypto'].includes(a.type));
+    const investmentTotal = investmentAssets.reduce((s, a) => s + num(a.amount), 0);
+    priorities.push({
+        title: 'Invertir para crecer',
+        status: investmentTotal > 0 ? 'in_progress' : 'action_needed',
+        description: investmentTotal > 0
+            ? 'Tienes ' + formatMoney(investmentTotal) + ' invertidos en activos de crecimiento. Rendimiento anual esperado: ' + formatMoney(investmentAssets.reduce((s, a) => s + num(a.amount) * num(a.rate_of_return) / 100, 0)) + '.'
+            : 'No tienes inversiones de crecimiento. Considera invertir en fondos indexados, acciones o bonos para hacer crecer tu patrimonio.'
+    });
+
+    // 5. Reducir deuda manejable (<=7%)
+    const manageableDebts = profile.liabilities.filter(l => num(l.interest_rate) <= 7);
+    priorities.push({
+        title: 'Reducir deuda manejable (<=7% interes)',
+        status: manageableDebts.length === 0 ? 'complete' : 'in_progress',
+        description: manageableDebts.length === 0
+            ? 'No tienes deudas con tasas de interes del 7% o menor.'
+            : 'Tienes ' + manageableDebts.length + ' deuda(s) manejable(s) con balance total de ' + formatMoney(manageableDebts.reduce((s, l) => s + num(l.balance), 0)) + '. Paga el minimo y enfocate en inversiones.'
+    });
+
+    return priorities;
+}
+
+// =====================================================================
+// DASHBOARD RENDERING
+// =====================================================================
+function renderDashboard() {
+    const profile = loadProfile();
+    if (!profile) return;
+
+    const c = calculate(profile);
+
+    // Header
+    document.getElementById('dash-header').textContent = profile.name + ' (' + num(profile.age) + ' anos)';
+
+    // Summary cards
+    const summaryHTML = `
+        <div class="col-md-6 col-xl-3">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Ingreso neto mensual</div>
+                    <div class="card-value ${valueColorClass(c.netIncome)}">${formatMoney(c.netIncome)}</div>
+                    <div class="card-subtitle">${formatMoney(c.totalIncome)} entra &mdash; ${formatMoney(c.totalExpenses)} sale</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Tasa de ahorro</div>
+                    <div class="card-value ${c.savingsRate >= 20 ? 'text-positive' : c.savingsRate < 0 ? 'text-negative' : ''}">${formatPercent(c.savingsRate)}</div>
+                    <div class="card-subtitle">Meta: 20%+</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Patrimonio neto</div>
+                    <div class="card-value ${valueColorClass(c.netTotalAssets)}">${formatMoney(c.netTotalAssets)}</div>
+                    <div class="card-subtitle">Activos &mdash; Deudas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Cambio anual en patrimonio</div>
+                    <div class="card-value ${valueColorClass(c.netChangeInNetWorth)}">${formatMoney(c.netChangeInNetWorth)}</div>
+                    <div class="card-subtitle">Proyeccion anual</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('summary-cards').innerHTML = summaryHTML;
+
+    // Ratio cards
+    const ratioHTML = `
+        <div class="col-md-4">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Ratio de vivienda</div>
+                    <div class="card-value ${c.housingCostRatio > 30 ? 'text-negative' : c.housingCostRatio > 0 ? 'text-positive' : ''}">${formatPercent(c.housingCostRatio)}</div>
+                    <div class="card-subtitle">Recomendado: &le;30%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Ratio de servicio de deuda</div>
+                    <div class="card-value ${c.debtServiceRatio > 20 ? 'text-negative' : c.debtServiceRatio > 0 ? 'text-positive' : ''}">${formatPercent(c.debtServiceRatio)}</div>
+                    <div class="card-subtitle">Recomendado: &le;20%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card h-100">
+                <div class="card-body">
+                    <div class="card-title">Activos financieros netos</div>
+                    <div class="card-value ${valueColorClass(c.netFinancialAssets)}">${formatMoney(c.netFinancialAssets)}</div>
+                    <div class="card-subtitle">Activos financieros &mdash; Deudas</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('ratio-cards').innerHTML = ratioHTML;
+
+    // Insights
+    const insights = generateInsights(profile, c);
+    let insightsHTML = '';
+    if (insights.length === 0) {
+        insightsHTML = '<div class="alert alert-info">Agrega datos a tu perfil para recibir analisis personalizado.</div>';
+    } else {
+        for (const ins of insights) {
+            insightsHTML += `<div class="alert alert-${ins.type} py-2">${ins.text}</div>`;
+        }
+    }
+    document.getElementById('insights-container').innerHTML = insightsHTML;
+
+    // Priorities
+    const priorities = calculatePriorities(profile, c);
+    let prioHTML = '';
+    priorities.forEach((p, i) => {
+        const icon = p.status === 'complete' ? '&#10003;' : '&#8594;';
+        const statusClass = 'priority-' + p.status.replace('_', '-');
+        const statusLabel = p.status === 'complete' ? 'Completado' : (p.status === 'in_progress' ? 'En progreso' : 'Accion necesaria');
+        const badgeClass = p.status === 'complete' ? 'bg-success' : (p.status === 'in_progress' ? 'bg-warning text-dark' : 'bg-danger');
+        prioHTML += `
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed ${statusClass}" type="button" data-bs-toggle="collapse" data-bs-target="#prio-${i}">
+                        <span class="priority-icon">${icon}</span>
+                        <span class="me-auto">${(i + 1)}. ${p.title}</span>
+                        <span class="badge ${badgeClass} ms-2">${statusLabel}</span>
+                    </button>
+                </h2>
+                <div id="prio-${i}" class="accordion-collapse collapse">
+                    <div class="accordion-body">${p.description}</div>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('priorities-accordion').innerHTML = prioHTML;
+
+    // Asset tables
+    renderAssetTable('table-financial-assets', profile.financialAssets, [
+        { key: 'type', label: 'Tipo', format: v => FINANCIAL_TYPE_LABELS[v] || v },
+        { key: 'label', label: 'Etiqueta', format: v => v || '-' },
+        { key: 'amount', label: 'Monto', format: v => formatMoney(num(v)) },
+        { key: 'rate_of_return', label: 'Rendimiento', format: v => formatPercent(num(v)) },
+        { key: 'planned_duration_years', label: 'Duracion (anos)', format: v => num(v) > 0 ? num(v) : '-' }
+    ]);
+
+    renderAssetTable('table-physical-assets', profile.physicalAssets, [
+        { key: 'type', label: 'Tipo', format: v => PHYSICAL_TYPE_LABELS[v] || v },
+        { key: 'label', label: 'Etiqueta', format: v => v || '-' },
+        { key: 'current_value', label: 'Valor', format: v => formatMoney(num(v)) },
+        { key: 'annual_depreciation_rate', label: 'Depreciacion', format: v => formatPercent(num(v)) }
+    ]);
+
+    renderAssetTable('table-liabilities', profile.liabilities, [
+        { key: 'type', label: 'Tipo', format: v => LIABILITY_TYPE_LABELS[v] || v },
+        { key: 'label', label: 'Etiqueta', format: v => v || '-' },
+        { key: 'balance', label: 'Balance', format: v => formatMoney(num(v)) },
+        { key: 'interest_rate', label: 'Tasa', format: v => formatPercent(num(v)) },
+        { key: 'monthly_payment', label: 'Pago mensual', format: v => formatMoney(num(v)) }
+    ]);
+}
+
+function renderAssetTable(containerId, items, columns) {
+    const container = document.getElementById(containerId);
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="p-3 text-muted text-center">Sin datos registrados</div>';
+        return;
+    }
+    let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr>';
+    for (const col of columns) {
+        html += '<th>' + col.label + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+    for (const item of items) {
+        html += '<tr>';
+        for (const col of columns) {
+            html += '<td>' + col.format(item[col.key]) + '</td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+// =====================================================================
+// FORM: POPULATE & SAVE
+// =====================================================================
+function populateForm() {
+    const profile = loadProfile() || getDefaultProfile();
+
+    document.getElementById('f-name').value = profile.name;
+    document.getElementById('f-age').value = profile.age;
+
+    document.getElementById('f-income-employment').value = profile.income.employment;
+    document.getElementById('f-income-investments').value = profile.income.investments;
+    document.getElementById('f-income-other').value = profile.income.other;
+
+    document.getElementById('f-exp-housing').value = profile.expenses.housing;
+    document.getElementById('f-exp-transportation').value = profile.expenses.transportation;
+    document.getElementById('f-exp-food').value = profile.expenses.food;
+    document.getElementById('f-exp-utilities').value = profile.expenses.utilities;
+    document.getElementById('f-exp-insurance').value = profile.expenses.insurance;
+    document.getElementById('f-exp-healthcare').value = profile.expenses.healthcare;
+    document.getElementById('f-exp-entertainment').value = profile.expenses.entertainment;
+    document.getElementById('f-exp-personal').value = profile.expenses.personal;
+    document.getElementById('f-exp-other').value = profile.expenses.other;
+
+    // Dynamic rows
+    const faContainer = document.getElementById('financial-assets-rows');
+    faContainer.innerHTML = '';
+    if (profile.financialAssets.length > 0) {
+        profile.financialAssets.forEach(a => addFinancialAssetRow(a));
+    }
+
+    const paContainer = document.getElementById('physical-assets-rows');
+    paContainer.innerHTML = '';
+    if (profile.physicalAssets.length > 0) {
+        profile.physicalAssets.forEach(a => addPhysicalAssetRow(a));
+    }
+
+    const liContainer = document.getElementById('liabilities-rows');
+    liContainer.innerHTML = '';
+    if (profile.liabilities.length > 0) {
+        profile.liabilities.forEach(l => addLiabilityRow(l));
+    }
+}
+
+function buildSelectHTML(options, selected) {
+    let html = '';
+    for (const opt of options) {
+        html += `<option value="${opt.value}" ${opt.value === selected ? 'selected' : ''}>${opt.label}</option>`;
+    }
+    return html;
+}
+
+// =====================================================================
+// DYNAMIC ROWS
+// =====================================================================
+let rowCounter = 0;
+
+function addFinancialAssetRow(data) {
+    const d = data || { type: 'savings', label: '', amount: 0, rate_of_return: 0, planned_duration_years: 0 };
+    const id = 'fa-' + (++rowCounter);
+    const container = document.getElementById('financial-assets-rows');
+    const div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.id = id;
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <strong class="text-muted small">Activo financiero</strong>
+            <button type="button" class="btn btn-outline-danger btn-remove-row" onclick="removeRow('${id}')">Eliminar</button>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label small">Tipo</label>
+                <select class="form-select form-select-sm fa-type">${buildSelectHTML(FINANCIAL_TYPE_OPTIONS, d.type)}</select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Etiqueta</label>
+                <input type="text" class="form-control form-control-sm fa-label" value="${escapeAttr(d.label)}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Monto</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">MX$</span>
+                    <input type="number" class="form-control fa-amount" min="0" step="0.01" value="${num(d.amount)}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Rendimiento</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" class="form-control fa-rate" min="0" step="0.01" value="${num(d.rate_of_return)}">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Duracion (anos)</label>
+                <input type="number" class="form-control form-control-sm fa-duration" min="0" step="1" value="${num(d.planned_duration_years)}">
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function addPhysicalAssetRow(data) {
+    const d = data || { type: 'vehicle', label: '', current_value: 0, annual_depreciation_rate: 0 };
+    const id = 'pa-' + (++rowCounter);
+    const container = document.getElementById('physical-assets-rows');
+    const div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.id = id;
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <strong class="text-muted small">Activo fisico</strong>
+            <button type="button" class="btn btn-outline-danger btn-remove-row" onclick="removeRow('${id}')">Eliminar</button>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label small">Tipo</label>
+                <select class="form-select form-select-sm pa-type">${buildSelectHTML(PHYSICAL_TYPE_OPTIONS, d.type)}</select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Etiqueta</label>
+                <input type="text" class="form-control form-control-sm pa-label" value="${escapeAttr(d.label)}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Valor actual</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">MX$</span>
+                    <input type="number" class="form-control pa-value" min="0" step="0.01" value="${num(d.current_value)}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Depreciacion anual</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" class="form-control pa-depreciation" min="0" step="0.01" value="${num(d.annual_depreciation_rate)}">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function addLiabilityRow(data) {
+    const d = data || { type: 'mortgage', label: '', balance: 0, interest_rate: 0, monthly_payment: 0 };
+    const id = 'li-' + (++rowCounter);
+    const container = document.getElementById('liabilities-rows');
+    const div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.id = id;
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <strong class="text-muted small">Deuda</strong>
+            <button type="button" class="btn btn-outline-danger btn-remove-row" onclick="removeRow('${id}')">Eliminar</button>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label small">Tipo</label>
+                <select class="form-select form-select-sm li-type">${buildSelectHTML(LIABILITY_TYPE_OPTIONS, d.type)}</select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Etiqueta</label>
+                <input type="text" class="form-control form-control-sm li-label" value="${escapeAttr(d.label)}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Balance</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">MX$</span>
+                    <input type="number" class="form-control li-balance" min="0" step="0.01" value="${num(d.balance)}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Tasa interes</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" class="form-control li-rate" min="0" step="0.01" value="${num(d.interest_rate)}">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Pago mensual</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">MX$</span>
+                    <input type="number" class="form-control li-payment" min="0" step="0.01" value="${num(d.monthly_payment)}">
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeRow(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+function escapeAttr(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// =====================================================================
+// SAVE PROFILE
+// =====================================================================
+function saveProfile() {
+    const profile = {
+        name: document.getElementById('f-name').value.trim() || 'Mi Perfil',
+        age: num(document.getElementById('f-age').value),
+        income: {
+            employment: num(document.getElementById('f-income-employment').value),
+            investments: num(document.getElementById('f-income-investments').value),
+            other: num(document.getElementById('f-income-other').value)
+        },
+        expenses: {
+            housing: num(document.getElementById('f-exp-housing').value),
+            transportation: num(document.getElementById('f-exp-transportation').value),
+            food: num(document.getElementById('f-exp-food').value),
+            utilities: num(document.getElementById('f-exp-utilities').value),
+            insurance: num(document.getElementById('f-exp-insurance').value),
+            healthcare: num(document.getElementById('f-exp-healthcare').value),
+            entertainment: num(document.getElementById('f-exp-entertainment').value),
+            personal: num(document.getElementById('f-exp-personal').value),
+            other: num(document.getElementById('f-exp-other').value)
+        },
+        financialAssets: collectFinancialAssets(),
+        physicalAssets: collectPhysicalAssets(),
+        liabilities: collectLiabilities()
+    };
+
+    saveToStorage(profile);
+    showView('dashboard');
+    return false; // prevent form submit
+}
+
+function collectFinancialAssets() {
+    const rows = document.querySelectorAll('#financial-assets-rows .dynamic-row');
+    const assets = [];
+    rows.forEach(row => {
+        assets.push({
+            type: row.querySelector('.fa-type').value,
+            label: row.querySelector('.fa-label').value.trim(),
+            amount: num(row.querySelector('.fa-amount').value),
+            rate_of_return: num(row.querySelector('.fa-rate').value),
+            planned_duration_years: num(row.querySelector('.fa-duration').value)
+        });
+    });
+    return assets;
+}
+
+function collectPhysicalAssets() {
+    const rows = document.querySelectorAll('#physical-assets-rows .dynamic-row');
+    const assets = [];
+    rows.forEach(row => {
+        assets.push({
+            type: row.querySelector('.pa-type').value,
+            label: row.querySelector('.pa-label').value.trim(),
+            current_value: num(row.querySelector('.pa-value').value),
+            annual_depreciation_rate: num(row.querySelector('.pa-depreciation').value)
+        });
+    });
+    return assets;
+}
+
+function collectLiabilities() {
+    const rows = document.querySelectorAll('#liabilities-rows .dynamic-row');
+    const items = [];
+    rows.forEach(row => {
+        items.push({
+            type: row.querySelector('.li-type').value,
+            label: row.querySelector('.li-label').value.trim(),
+            balance: num(row.querySelector('.li-balance').value),
+            interest_rate: num(row.querySelector('.li-rate').value),
+            monthly_payment: num(row.querySelector('.li-payment').value)
+        });
+    });
+    return items;
+}
+
+// =====================================================================
+// RESET PROFILE
+// =====================================================================
+function resetProfile() {
+    if (confirm('Estas seguro de que deseas resetear tu perfil financiero? Se perderan todos los datos.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        populateForm();
+    }
+}
+
+// =====================================================================
+// INITIALIZATION
+// =====================================================================
+document.addEventListener('DOMContentLoaded', function () {
+    if (hasProfile()) {
+        showView('dashboard');
+    } else {
+        showView('edit');
+    }
+});
+</script>
+</body>
+</html>
