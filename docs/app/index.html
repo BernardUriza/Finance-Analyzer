@@ -180,7 +180,10 @@
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 id="dash-header" class="mb-0"></h2>
-            <button class="btn btn-outline-primary" onclick="showView('edit')">Editar Perfil</button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="showView('edit')">Editar Perfil</button>
+                <button class="btn btn-outline-danger" onclick="resetProfile()">Borrar datos</button>
+            </div>
         </div>
 
         <!-- Summary Cards -->
@@ -1289,9 +1292,10 @@ function collectLiabilities() {
 // RESET PROFILE
 // =====================================================================
 function resetProfile() {
-    if (confirm('Estas seguro de que deseas resetear tu perfil financiero? Se perderan todos los datos.')) {
+    if (confirm('Estas seguro de que deseas borrar todos los datos? Se perdera toda la informacion guardada.')) {
         localStorage.removeItem(STORAGE_KEY);
         populateForm();
+        showView('edit');
     }
 }
 
