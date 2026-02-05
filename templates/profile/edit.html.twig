@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Perfil — Analizador Financiero{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Editar Perfil Financiero</h1>
+        <div>
+            <a href="{{ path('dashboard') }}" class="btn btn-outline-secondary">Volver al Dashboard</a>
+            <form action="{{ path('profile_reset') }}" method="post" class="d-inline" onsubmit="return confirm('¿Resetear todos los datos a valores por defecto?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('profile_reset') }}">
+                <button type="submit" class="btn btn-outline-danger">Resetear</button>
+            </form>
+        </div>
+    </div>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+    <div class="row g-4">
+        {# Info básica #}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><strong>Datos básicos</strong></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-8">{{ form_row(form.name) }}</div>
+                        <div class="col-4">{{ form_row(form.age) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Ingresos #}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><strong>Ingresos mensuales</strong></div>
+                <div class="card-body">
+                    {% include 'profile/_income_fields.html.twig' %}
+                </div>
+            </div>
+        </div>
+
+        {# Gastos #}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header"><strong>Gastos mensuales</strong></div>
+                <div class="card-body">
+                    {% include 'profile/_expense_fields.html.twig' %}
+                </div>
+            </div>
+        </div>
+
+        {# Activos financieros #}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Activos financieros</strong>
+                    <button type="button" class="btn btn-sm btn-outline-success add-collection-item" data-collection="financial_profile_financialAssets" data-prototype-name="__fa_name__">+ Agregar activo</button>
+                </div>
+                <div class="card-body">
+                    {% include 'profile/_financial_assets.html.twig' %}
+                </div>
+            </div>
+        </div>
+
+        {# Activos físicos #}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Activos físicos</strong>
+                    <button type="button" class="btn btn-sm btn-outline-success add-collection-item" data-collection="financial_profile_physicalAssets" data-prototype-name="__pa_name__">+ Agregar activo</button>
+                </div>
+                <div class="card-body">
+                    {% include 'profile/_physical_assets.html.twig' %}
+                </div>
+            </div>
+        </div>
+
+        {# Deudas #}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Deudas</strong>
+                    <button type="button" class="btn btn-sm btn-outline-success add-collection-item" data-collection="financial_profile_liabilities" data-prototype-name="__li_name__">+ Agregar deuda</button>
+                </div>
+                <div class="card-body">
+                    {% include 'profile/_liabilities.html.twig' %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 mb-5">
+        {{ form_row(form.save) }}
+    </div>
+
+    {{ form_end(form) }}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar nuevos elementos a la colección
+    document.querySelectorAll('.add-collection-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var collectionId = this.dataset.collection;
+            var prototypeName = this.dataset.prototypeName;
+            var container = document.getElementById(collectionId);
+            var prototype = container.dataset.prototype;
+            var index = container.children.length;
+            var newItem = prototype.replace(new RegExp(prototypeName, 'g'), index);
+            var wrapper = document.createElement('div');
+            wrapper.classList.add('collection-item', 'border', 'rounded', 'p-3', 'mb-3', 'position-relative');
+            wrapper.innerHTML = newItem + '<button type="button" class="btn btn-sm btn-outline-danger remove-item position-absolute top-0 end-0 m-2">✕</button>';
+            container.appendChild(wrapper);
+            wrapper.querySelector('.remove-item').addEventListener('click', function() {
+                wrapper.remove();
+            });
+        });
+    });
+
+    // Eliminar elementos existentes
+    document.querySelectorAll('.remove-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            this.closest('.collection-item').remove();
+        });
+    });
+});
+</script>
+{% endblock %}

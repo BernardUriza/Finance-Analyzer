@@ -1,0 +1,17 @@
+<div id="financial_profile_financialAssets" data-prototype="{{ form_widget(form.financialAssets.vars.prototype)|e('html_attr') }}">
+    {% for asset in form.financialAssets %}
+        <div class="collection-item border rounded p-3 mb-3 position-relative">
+            <div class="row g-2">
+                <div class="col-md-2">{{ form_widget(asset.type) }}</div>
+                <div class="col-md-3">{{ form_widget(asset.label, {'attr': {'placeholder': 'Descripción'}}) }}</div>
+                <div class="col-md-3">{{ form_widget(asset.amount) }}</div>
+                <div class="col-md-2">{{ form_widget(asset.rate_of_return, {'attr': {'placeholder': 'Rend. %'}}) }}</div>
+                <div class="col-md-2">{{ form_widget(asset.planned_duration_years, {'attr': {'placeholder': 'Años'}}) }}</div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item position-absolute top-0 end-0 m-2">✕</button>
+        </div>
+    {% endfor %}
+</div>
+{% if form.financialAssets|length == 0 %}
+    <p class="text-muted" id="fa-empty-msg">Sin activos financieros. Haz clic en "+ Agregar activo" para empezar.</p>
+{% endif %}

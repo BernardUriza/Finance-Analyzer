@@ -1,0 +1,131 @@
+{% set financial_type_labels = {
+    'savings': 'Ahorro / CETES',
+    'retirement': 'Afore',
+    'mutual_fund': 'Fondo de inversión',
+    'stocks': 'Acciones / ETF',
+    'index_fund': 'Fondo indexado',
+    'bonds': 'Bonos',
+    'crypto': 'Crypto',
+    'cash': 'Efectivo',
+    'other': 'Otro',
+} %}
+{% set physical_type_labels = {
+    'vehicle': 'Vehículo',
+    'real_estate': 'Inmueble',
+    'electronics': 'Electrónicos',
+    'furniture': 'Muebles',
+    'other': 'Otro',
+} %}
+{% set liability_type_labels = {
+    'mortgage': 'Hipoteca',
+    'car_loan': 'Crédito automotriz',
+    'student_loan': 'Crédito educativo',
+    'credit_card': 'Tarjeta de crédito',
+    'line_of_credit': 'Línea de crédito',
+    'personal_loan': 'Préstamo personal',
+    'other': 'Otro',
+} %}
+
+<div class="row g-4 mb-4">
+    {# Activos financieros #}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <strong>Activos financieros</strong>
+                <span class="text-success">${{ calc.totalFinancialAssets|number_format(2, '.', ',') }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if profile.financialAssets|length > 0 %}
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr><th>Tipo</th><th>Descripción</th><th class="text-end">Monto</th><th class="text-end">Rend.</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for asset in profile.financialAssets %}
+                        <tr>
+                            <td><small>{{ financial_type_labels[asset.type]|default(asset.type|default('—')) }}</small></td>
+                            <td>{{ asset.label|default('—') }}</td>
+                            <td class="text-end">${{ asset.amount|default(0)|number_format(2) }}</td>
+                            <td class="text-end">{{ asset.rate_of_return|default(0)|number_format(1) }}%</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p class="text-muted p-3 mb-0">Sin activos financieros. <a href="{{ path('profile_edit') }}">Agrega algunos</a>.</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted">
+                <small>Ganancia anual esperada: ${{ calc.expectedAnnualGain|number_format(2) }}</small>
+            </div>
+        </div>
+    </div>
+
+    {# Activos físicos #}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <strong>Activos físicos</strong>
+                <span class="text-info">${{ calc.totalPhysicalAssets|number_format(2, '.', ',') }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if profile.physicalAssets|length > 0 %}
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr><th>Tipo</th><th>Descripción</th><th class="text-end">Valor</th><th class="text-end">Depr.</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for asset in profile.physicalAssets %}
+                        <tr>
+                            <td><small>{{ physical_type_labels[asset.type]|default(asset.type|default('—')) }}</small></td>
+                            <td>{{ asset.label|default('—') }}</td>
+                            <td class="text-end">${{ asset.current_value|default(0)|number_format(2) }}</td>
+                            <td class="text-end">{{ asset.annual_depreciation_rate|default(0)|number_format(1) }}%</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p class="text-muted p-3 mb-0">Sin activos físicos. <a href="{{ path('profile_edit') }}">Agrega algunos</a>.</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted">
+                <small>Depreciación anual: ${{ calc.annualDepreciation|number_format(2) }}</small>
+            </div>
+        </div>
+    </div>
+
+    {# Deudas #}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <strong>Deudas</strong>
+                <span class="text-danger">${{ calc.totalLiabilities|number_format(2, '.', ',') }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if profile.liabilities|length > 0 %}
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr><th>Tipo</th><th>Descripción</th><th class="text-end">Saldo</th><th class="text-end">Tasa</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for liability in profile.liabilities %}
+                        <tr>
+                            <td><small>{{ liability_type_labels[liability.type]|default(liability.type|default('—')) }}</small></td>
+                            <td>{{ liability.label|default('—') }}</td>
+                            <td class="text-end">${{ liability.balance|default(0)|number_format(2) }}</td>
+                            <td class="text-end">{{ liability.interest_rate|default(0)|number_format(1) }}%</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p class="text-muted p-3 mb-0">Sin deudas. ¡Libre de deudas!</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted">
+                <small>Costo anual de intereses: ${{ calc.annualInterestCost|number_format(2) }}</small>
+            </div>
+        </div>
+    </div>
+</div>

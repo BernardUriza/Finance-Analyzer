@@ -1,0 +1,80 @@
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-metric {{ calc.netIncome >= 0 ? 'positive' : 'negative' }}">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Ingreso neto mensual</h6>
+                <h3 class="card-title mb-0 {{ calc.netIncome >= 0 ? 'text-success' : 'text-danger' }}">
+                    ${{ calc.netIncome|number_format(2, '.', ',') }}
+                </h3>
+                <small class="text-muted">${{ calc.totalIncome|number_format(2) }} entra — ${{ calc.totalExpenses|number_format(2) }} sale</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric {{ calc.savingsRate >= 20 ? 'positive' : (calc.savingsRate >= 0 ? 'neutral' : 'negative') }}">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Tasa de ahorro</h6>
+                <h3 class="card-title mb-0">{{ calc.savingsRate|number_format(1) }}%</h3>
+                <small class="text-muted">Meta: 20%+</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric {{ calc.netTotalAssets >= 0 ? 'positive' : 'negative' }}">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Patrimonio neto</h6>
+                <h3 class="card-title mb-0 {{ calc.netTotalAssets >= 0 ? 'text-success' : 'text-danger' }}">
+                    ${{ calc.netTotalAssets|number_format(2, '.', ',') }}
+                </h3>
+                <small class="text-muted">Activos — Deudas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric {{ calc.netChangeInNetWorth >= 0 ? 'positive' : 'negative' }}">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Cambio anual en patrimonio</h6>
+                <h3 class="card-title mb-0 {{ calc.netChangeInNetWorth >= 0 ? 'text-success' : 'text-danger' }}">
+                    ${{ calc.netChangeInNetWorth|number_format(2, '.', ',') }}
+                </h3>
+                <small class="text-muted">Proyección anual</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card card-metric neutral">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Ratio de vivienda</h6>
+                <h4 class="mb-0 {{ calc.housingCostRatio > 30 ? 'text-warning' : 'text-success' }}">
+                    {{ calc.housingCostRatio|number_format(1) }}%
+                </h4>
+                <small class="text-muted">Recomendado: ≤30%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-metric neutral">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Ratio de servicio de deuda</h6>
+                <h4 class="mb-0 {{ calc.debtServiceRatio > 40 ? 'text-danger' : (calc.debtServiceRatio > 20 ? 'text-warning' : 'text-success') }}">
+                    {{ calc.debtServiceRatio|number_format(1) }}%
+                </h4>
+                <small class="text-muted">Recomendado: ≤20%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-metric neutral">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">Activos financieros netos</h6>
+                <h4 class="mb-0 {{ calc.netFinancialAssets >= 0 ? 'text-success' : 'text-danger' }}">
+                    ${{ calc.netFinancialAssets|number_format(2, '.', ',') }}
+                </h4>
+                <small class="text-muted">Activos financieros — Deudas</small>
+            </div>
+        </div>
+    </div>
+</div>

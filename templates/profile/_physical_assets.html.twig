@@ -1,0 +1,16 @@
+<div id="financial_profile_physicalAssets" data-prototype="{{ form_widget(form.physicalAssets.vars.prototype)|e('html_attr') }}">
+    {% for asset in form.physicalAssets %}
+        <div class="collection-item border rounded p-3 mb-3 position-relative">
+            <div class="row g-2">
+                <div class="col-md-3">{{ form_widget(asset.type) }}</div>
+                <div class="col-md-3">{{ form_widget(asset.label, {'attr': {'placeholder': 'Descripción'}}) }}</div>
+                <div class="col-md-3">{{ form_widget(asset.current_value) }}</div>
+                <div class="col-md-3">{{ form_widget(asset.annual_depreciation_rate, {'attr': {'placeholder': 'Depr. %'}}) }}</div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-item position-absolute top-0 end-0 m-2">✕</button>
+        </div>
+    {% endfor %}
+</div>
+{% if form.physicalAssets|length == 0 %}
+    <p class="text-muted" id="pa-empty-msg">Sin activos físicos. Haz clic en "+ Agregar activo" para empezar.</p>
+{% endif %}

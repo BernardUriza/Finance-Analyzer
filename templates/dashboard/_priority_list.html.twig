@@ -1,0 +1,24 @@
+<div class="mb-4">
+    <h4>Prioridades financieras</h4>
+    <div class="accordion" id="priorityAccordion">
+        {% for i, priority in calc.priorities %}
+            {% set statusColor = priority.status == 'complete' ? 'success' : (priority.status == 'in_progress' ? 'primary' : 'warning') %}
+            {% set statusIcon = priority.status == 'complete' ? '✓' : (priority.status == 'in_progress' ? '→' : '!') %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button {{ i > 0 ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#priority{{ i }}">
+                        <span class="badge bg-{{ statusColor }} me-2 priority-badge">{{ statusIcon }}</span>
+                        <strong class="me-2">#{{ i + 1 }}</strong>
+                        {{ priority.name }}
+                    </button>
+                </h2>
+                <div id="priority{{ i }}" class="accordion-collapse collapse {{ i == 0 ? 'show' : '' }}" data-bs-parent="#priorityAccordion">
+                    <div class="accordion-body">
+                        <p>{{ priority.description }}</p>
+                        <p class="mb-0"><strong>Acción:</strong> {{ priority.action }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

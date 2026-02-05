@@ -1,0 +1,13 @@
+{% if insights.count > 0 %}
+<div class="mb-4">
+    <h4>Análisis</h4>
+    {% for insight in insights.all %}
+        <div class="alert alert-{{ insight.severity }} d-flex align-items-start" role="alert">
+            <div>
+                <strong>{{ insight.title }}</strong><br>
+                {{ insight.message }}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
